@@ -1,8 +1,12 @@
 #include<windows.h>
 #include<iostream>
 #include"resource.h"
+#include"commctrl.h"
+
+CONST CHAR g_sz_INVENTATION[] = "Enter your name";
 
 BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
 
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, INT nCmdShow)
 {
@@ -33,7 +37,12 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			//SendMessage(окно, сообщение, параметры сообщения);
 
 			HWND hEditLogin = GetDlgItem(hwnd, IDC_EDIT_LOGIN);
+			SendMessage(hEditLogin, WM_SETTEXT, 0, (LPARAM)g_sz_INVENTATION);
 			
+			//CONST INT TIP_SIZE = 20;
+			//wchar_t tip[TIP_SIZE]{};
+
+
 			//SetFocus(hEditLogin);
 
 			break;
@@ -41,18 +50,31 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_COMMAND:		//здесь обрабатываются нажатия на кнопки, ввод текста и любые изменения состояния окна
 		switch (LOWORD(wParam))
 		{
+		case IDC_EDIT_LOGIN:
+		{
+				CONST INT SIZE = 256;
+				CHAR sz_buffer[SIZE]{};
+				HWND hEditLogin = GetDlgItem(hwnd, IDC_EDIT_LOGIN);
+				SendMessage(hEditLogin, WM_GETTEXT, SIZE, (LPARAM)sz_buffer);
+			if (HIWORD(wParam) == EN_SETFOCUS && (strcmp(sz_buffer, g_sz_INVENTATION) == 0))
+				SendMessage(hEditLogin, WM_SETTEXT, 0, (LPARAM)"");
+			if (HIWORD(wParam) == EN_KILLFOCUS && (strcmp(sz_buffer, "") == 0))
+				SendMessage(hEditLogin, WM_SETTEXT, 0, (LPARAM)g_sz_INVENTATION);
+		}
+			break;
 		case IDC_BUTTON_COPY:
 			{	
 			HWND hEdit = GetDlgItem(hwnd, IDC_EDIT_LOGIN);
 			HWND hPassword = GetDlgItem(hwnd, IDC_EDIT_PASSWORD);
 			CONST INT SIZE = 256;
 			CHAR sz_buffer[SIZE]{};
+
 			SendMessage(hEdit, WM_GETTEXT, SIZE, (LPARAM)sz_buffer);
 			SendMessage(hPassword, WM_SETTEXT, 0, (LPARAM)sz_buffer);
 			}
 			break;
 		case IDOK:
-			MessageBox(hwnd, "Was presses OK-button!", "Info", MB_OK | MB_ICONINFORMATION); break;
+			MessageBox(hwnd, "Nothing happened", "Info", MB_OK | MB_ICONINFORMATION); break;
 		case IDCANCEL:
 			EndDialog(hwnd, 0); 
 			break;
