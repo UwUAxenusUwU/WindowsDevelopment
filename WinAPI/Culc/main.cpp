@@ -9,6 +9,7 @@ CONST INT g_i_START_Y = 10;
 
 CONST INT g_i_BUTTON_SIZE = 50;
 CONST INT g_i_INTERVAL = 5;
+CONST INT g_i_BUTTON_DOUBLE_SIZE = g_i_BUTTON_SIZE * 2 + g_i_INTERVAL;
 
 CONST INT g_i_DISPLAY_WIDTH = (g_i_BUTTON_SIZE + g_i_INTERVAL) * 5;
 CONST INT g_i_DISPLAY_HEIGHT = 24;
@@ -37,8 +38,8 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lcCmdLine, IN
 	wClass.hbrBackground = (HBRUSH)COLOR_WINDOW;
 
 	wClass.hInstance = hInstance;
-	wClass.lpszClassName = g_sz_WINDOW_CLASS;
 	wClass.lpfnWndProc = (WNDPROC)WndProc;
+	wClass.lpszClassName = g_sz_WINDOW_CLASS;
 	wClass.lpszMenuName = NULL;
 
 	if (!RegisterClassEx(&wClass))
@@ -91,6 +92,7 @@ INT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			g_i_DISPLAY_WIDTH, g_i_DISPLAY_HEIGHT,
 			hwnd, (HMENU)IDC_EDIT_DISPLAY, NULL, NULL
 		);
+		////////////////////////// digits ///////////////////////////////
 		INT digit = 0;
 		CHAR sz_digit[2]{};
 		for (int i = 2; i >= 0; i--)
@@ -109,6 +111,15 @@ INT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				);
 			}
 		}
+			CreateWindowEx
+			(
+				NULL, "Button", "0",
+				WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+				g_i_START_X_BUTTON, g_i_START_Y_BUTTON + (g_i_BUTTON_SIZE + g_i_INTERVAL) * 3,
+				g_i_BUTTON_DOUBLE_SIZE, g_i_BUTTON_SIZE, hwnd, (HMENU)IDC_BUTTON_0,
+				NULL, NULL
+			);
+		///////////////////// operations /////////////////////
 	}
 		break;
 	case WM_COMMAND:
