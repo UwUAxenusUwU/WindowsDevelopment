@@ -80,6 +80,9 @@ INT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	static HINSTANCE hRichEdit20 = LoadLibrary("riched20.dll");
 	static CHAR szFileName[MAX_PATH] = "";
+	static LPSTR lpstrFileText = NULL;
+	static DWORD dwFileTextLen = 0;
+	static BOOL textChanged = FALSE;
 	switch (uMsg)
 	{
 	case WM_CREATE:
@@ -93,7 +96,7 @@ INT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		std::cout << "Client: " << clientRect.left << "\t" << clientRect.top << "\t" << clientRect.right << "\t" << clientRect.bottom << std::endl;
 		HWND hEdit = CreateWindowEx
 		(
-			NULL, RICHEDIT_CLASS, "Workspace",
+			NULL, RICHEDIT_CLASS, "",
 			WS_CHILD | WS_VISIBLE | ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL,
 			0, 0, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, hwnd, (HMENU)IDC_EDIT, NULL, NULL
 		);
@@ -120,7 +123,7 @@ INT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 			ofn.lStructSize = sizeof(ofn);
 			ofn.hwndOwner = hwnd;
-			ofn.lpstrFilter = "Text files: (*.txt)\0.txt\0C Plus Plus files (*.cpp | *.h)\0*.cpp;*.h\0All files: (*.*)\0*.*\0";
+			ofn.lpstrFilter = "Text files: (*.txt)\0*.txt\0C Plus Plus files: (*.cpp | *.h)\0*.cpp;*.h\0All files: (*.*)\0*.*\0";
 			ofn.lpstrFile = szFileName;
 			ofn.nMaxFile = MAX_PATH;
 			ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
@@ -129,7 +132,31 @@ INT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			if (GetOpenFileName(&ofn))
 			{
 				HWND hEdit = GetDlgItem(hwnd, IDC_EDIT);
-				LoadTextFileToEdit(hEdit, szFileName);
+
+
+				DWORD dwCurrentTextLenght = SendMessage(hEdit, WM_GETTEXTLENGTH, 0, 0);
+
+				LPSTR lpstrCurrentText = (LPSTR)GlobalAlloc(GPTR, dwCurrentTextLenght + 1);
+				SendMessage(hEdit, WM_GETTEXT, dwCurrentTextLenght + 1, (LPARAM)lpstrCurrentText);
+				BOOL fileWasChanged = TRUE;
+				if(lpstrCurrentText && lpstrFileText) strcmp(lpstrCurrentText, lpstrFileText);
+				GlobalFree(lpstrCurrentText);
+				if (fileWasChanged)
+				{
+					switch (MessageBox(hwnd, "Save changes in file?", "File has been changed!", MB_YESNOCANCEL || MB_ICONQUESTION))
+					{
+					case IDYES: SendMessage(hwnd, WM_COMMAND, LOWORD(ID_FILE_SAVE), 0); break;
+					case IDNO: 
+					{
+						LoadTextFileToEdit(hEdit, szFileName);
+						GlobalFree(lpstrFileText);
+						dwFileTextLen = SendMessage(hEdit, WM_GETTEXTLENGTH, 0, 0);
+						lpstrFileText = (LPSTR)GlobalAlloc(GPTR, dwFileTextLen + 1);
+						SendMessage(hEdit, WM_GETTEXT, dwFileTextLen, (LPARAM)lpstrFileText);
+					}
+					case IDCANCEL: break;
+					}
+				}
 			}
 		}
 		break;
@@ -140,23 +167,32 @@ INT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			else SendMessage(hwnd, WM_COMMAND, LOWORD(ID_FILE_SAVEAS), 0);
 		}
 		break;
-	case ID_FILE_SAVEAS:
-	{
-		OPENFILENAME ofn;
-		ZeroMemory(&ofn, sizeof(ofn));
-		ofn.lStructSize = sizeof(ofn);
-		ofn.hwndOwner = hwnd;
-		ofn.lpstrFilter = "Text files: (*.txt)\0.txt\0C Plus Plus files (*.cpp | *.h)\0*.cpp;*.h\0All files: (*.*)\0*.*\0";
-		ofn.lpstrDefExt = "txt";
-		ofn.lpstrFile = szFileName;
-		ofn.nMaxFile = MAX_PATH;
-		ofn.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-		if (GetSaveFileName(&ofn))SaveTextFileFromEdit(GetDlgItem(hwnd, IDC_EDIT), szFileName);
-	}
+
+		case ID_FILE_SAVEAS:
+		{
+			OPENFILENAME ofn;
+			ZeroMemory(&ofn, sizeof(ofn));
+			ofn.lStructSize = sizeof(ofn);
+			ofn.hwndOwner = hwnd;
+			ofn.lpstrFilter = "Text files: (*.txt)\0.txt\0C Plus Plus files (*.cpp | *.h)\0*.cpp;*.h\0All files: (*.*)\0*.*\0";
+			ofn.lpstrDefExt = "txt";
+			ofn.lpstrFile = szFileName;
+			ofn.nMaxFile = MAX_PATH;
+			ofn.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+			if (GetSaveFileName(&ofn))SaveTextFileFromEdit(GetDlgItem(hwnd, IDC_EDIT), szFileName);
+		}
+		break;
+		case IDC_EDIT:
+		{
+			if (HIWORD(wParam) == EN_CHANGE)
+			{
+				textChanged = TRUE;
+			}
+		}
 		break;
 		}
-	}
 		break;
+	}
 	case WM_DESTROY:
 		FreeLibrary(hRichEdit20);
 		;;;;;;;;;		PostQuitMessage(0);
@@ -237,7 +273,7 @@ BOOL SaveTextFileFromEdit(HWND hEdit, LPSTR lpszFileName)
 				GlobalFree(lpszText);
 			}
 		}
-	CloseHandle(hFile);
+		CloseHandle(hFile);
 	}
 	return bSuccess;
 }
