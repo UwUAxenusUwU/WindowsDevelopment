@@ -14,7 +14,7 @@ void Click(int x, int y)
 {
 	SetCursorPosition(x, y);
 	mouse_event(MOUSEEVENTF_LEFTDOWN, x, y, 0, 0);
-	this_thread::sleep_for(chrono::milliseconds(rand()%(80-20 + 1)+40));
+	this_thread::sleep_for(chrono::milliseconds(rand()%(60-10 + 1)+60));
 	mouse_event(MOUSEEVENTF_LEFTUP, x, y, 0, 0);
 }
 
@@ -67,10 +67,10 @@ POINT FindSnowflake(HBITMAP hBitmap, int width, int height)
                 BYTE red = pixels[index + 2];
 
                 // Условие поиска цвета (можно настроить диапазон)
-                if ((red >= 150 && red <= 210 && green >= 200 && green <= 250 && blue >= 0 && blue <= 10) || (red >= 140 && red <= 150 && green >= 225 && green <= 235 && blue >= 240 && blue <= 250 && y<680))
+                if ((red >= 150 && red <= 210 && green >= 200 && green <= 250 && blue >= 0 && blue <= 10 && (y > 680 || y < 400)) || (red >= 140 && red <= 150 && green >= 225 && green <= 235 && blue >= 240 && blue <= 250 && y>680))
                 {
                     delete[] pixels;
-                    return POINT{ x + (rand() % (10 - 2 + 1) + 35) - (rand() % (10 - 2 + 1) + 25), y + (rand() % (10 - 2 + 1) + 35) - +(rand() % (10 - 2 + 1) + 35) }; // снежинка
+                    return POINT{ x + (rand() % (10 - 2 + 1) + 35) - (rand() % (10 - 2 + 1) + 45), y +(rand() % (10 - 2 + 1) + 5) }; // снежинка
                 }
                 if (red == 131 && green == 135 && blue == 136 && randomChance <= 20)
                 {
