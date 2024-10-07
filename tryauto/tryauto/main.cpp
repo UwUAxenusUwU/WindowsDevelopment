@@ -57,31 +57,36 @@ POINT FindSnowflake(HBITMAP hBitmap, int width, int height)
     // Пробегаем по всем пикселям изображения
     for (int y = 250; y < height-130; y++) 
     {
-        for (int x = 660; x < width-700; x++) 
+        if (y <= 400 || y >= 565)
         {
-            int index = (x + y * width) * 4; // Индекс пикселя
-            BYTE blue = pixels[index];
-            BYTE green = pixels[index + 1];
-            BYTE red = pixels[index + 2];
+            for (int x = 660; x < width - 700; x++)
+            {
+                int index = (x + y * width) * 4; // Индекс пикселя
+                BYTE blue = pixels[index];
+                BYTE green = pixels[index + 1];
+                BYTE red = pixels[index + 2];
 
-            // Условие поиска цвета (можно настроить диапазон)
-            if ((red >= 150 && red <= 210 && green >= 200 && green <= 250 && blue >= 0 && blue <= 10)||(red >= 140 && red <= 150 && green >= 225 && green <= 235 && blue >= 240 && blue <= 250))
-            {
-                delete[] pixels;
-                return POINT{ x-10, y-10 }; // Возвращаем координаты найденной снежинки
-            }
-            if (red == 131 && green == 135 && blue == 136 && randomChance<=20)
-            {
-                delete[] pixels;
-                return POINT{ x-10, y-10 }; // Возвращаем координаты найденной снежинки
-            }
-            if (red >= 245 && red <= 255 && green >= 160 && green <= 180 && blue >= 170 && blue <= 190)
-            {
-                delete[] pixels;
-                std::this_thread::sleep_for(std::chrono::milliseconds(rand() % (150 - 40 + 1) + 1000));
-                return POINT{ x - 10, y - 10 }; // Возвращаем координаты найденной снежинки
+                // Условие поиска цвета (можно настроить диапазон)
+                if ((red >= 150 && red <= 210 && green >= 200 && green <= 250 && blue >= 0 && blue <= 10) || (red >= 140 && red <= 150 && green >= 225 && green <= 235 && blue >= 240 && blue <= 250 && y<680))
+                {
+                    delete[] pixels;
+                    return POINT{ x + (rand() % (10 - 2 + 1) + 35) - (rand() % (10 - 2 + 1) + 25), y + (rand() % (10 - 2 + 1) + 35) - +(rand() % (10 - 2 + 1) + 35) }; // снежинка
+                }
+                if (red == 131 && green == 135 && blue == 136 && randomChance <= 20)
+                {
+                    delete[] pixels;
+                    return POINT{ x + (rand() % (10 - 2 + 1) + 35) - (rand() % (10 - 2 + 1) + 25), y + (rand() % (10 - 2 + 1) + 35) - +(rand() % (10 - 2 + 1) + 35) }; // бомба
+                }
+                if (red >= 245 && red <= 255 && green >= 160 && green <= 180 && blue >= 170 && blue <= 190)
+                {
+                    delete[] pixels;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(rand() % (1500 - 400 + 1) + 1000));
+                    return POINT{ x, y }; // билет
+                }
             }
         }
+        else 
+            continue;
     }
 
     delete[] pixels;
@@ -90,9 +95,9 @@ POINT FindSnowflake(HBITMAP hBitmap, int width, int height)
 
 void main()
 {
-    auto lastFoundTime = std::chrono::steady_clock::now();
-    const int TIMEOUT_MS = 10000; // Тайм-аут в n секунд
-    this_thread::sleep_for(std::chrono::milliseconds(2000));
+    //auto lastFoundTime = std::chrono::steady_clock::now();
+    //const int TIMEOUT_MS = 10000; // Тайм-аут в n секунд
+    this_thread::sleep_for(std::chrono::milliseconds(3000));
     while (true) 
     {
         int screenWidth = 1980, screenHeight = 1024;
@@ -107,7 +112,7 @@ void main()
         if (snowflake.x != -1 && snowflake.y != -1) 
         {
             //cout << "Снежинка найдена! Кликаю по координатам: " << snowflake.x << ", " << snowflake.y << endl;
-            Click(snowflake.x + (rand() % (10 - 2 + 1) + 35), snowflake.y + (rand() % (10 - 2 + 1) + 35));
+            Click(snowflake.x, snowflake.y);
             auto lastFoundTime = std::chrono::steady_clock::now(); // Время последнего нахождения снежинки
         }
         //else 
@@ -134,6 +139,6 @@ void main()
 
         // Задержка перед следующим поиском снежинки
         std::this_thread::sleep_for(std::chrono::milliseconds(rand()%(100-35+1)+40));
-
+        DeleteObject(hBitmap);
     }
 }
