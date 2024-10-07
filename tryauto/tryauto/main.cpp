@@ -18,23 +18,23 @@ void Click(int x, int y)
 	mouse_event(MOUSEEVENTF_LEFTUP, x, y, 0, 0);
 }
 
-HBITMAP CaptureScreen(int width, int height)
+hBitMap CaptureWindow(int width, int height)
 {
 	HDC hScreenDC = GetDC(NULL);
 	HDC hMemoryDC = CreateCompatibleDC(hScreenDC);
 
-	HBITMAP hBitMap = CreateCompatibleBitmap(hScreenDC, width, height);
+	hBitMap hBitMap = CreateCompatibleBitmap(hScreenDC, width, height);
 
-	HBITMAP hOldBitmap = (HBITMAP)SelectObject(hMemoryDC, hBitMap);
+	hBitMap hOldBitmap = (hBitMap)SelectObject(hMemoryDC, hBitMap);
 	BitBlt(hMemoryDC, 0, 0, width, height, hScreenDC, 0, 0, SRCCOPY);
-	hBitMap = (HBITMAP)SelectObject(hMemoryDC, hOldBitmap);
+	hBitMap = (hBitMap)SelectObject(hMemoryDC, hOldBitmap);
 
 	DeleteDC(hMemoryDC);
 	ReleaseDC(NULL, hScreenDC);
 
 	return hBitMap;
 }
-POINT FindSnowflake(HBITMAP hBitmap, int width, int height)
+POINT FindSnowflake(hBitMap hBitmap, int width, int height)
 {
     BITMAPINFOHEADER bmi = { 0 };
     bmi.biSize = sizeof(BITMAPINFOHEADER);
@@ -103,7 +103,7 @@ void main()
         int screenWidth = 1980, screenHeight = 1024;
 
         // Захватываем скриншот экрана
-        HBITMAP hBitmap = CaptureScreen(screenWidth, screenHeight);
+        hBitMap hBitmap = CaptureWindow(screenWidth, screenHeight);
 
         // Ищем снежинку на экране
         POINT snowflake = FindSnowflake(hBitmap, screenWidth, screenHeight);
